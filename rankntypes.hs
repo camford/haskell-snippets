@@ -85,9 +85,10 @@ Roughly 15:13 in the video
 
 This type checks. But ...
 Your function 'f' *does not* require the type constraint 'Num a'.
-If you call this from ghci it'll look like it blows up at tuntime (as it
-does in the talk) but in actual fact, any callee that doesn't passa function
-as general as (forall . a -> a) will fail to type check.
+If you call this from ghci it'll look like it blows up at runtime (this is
+what I thought was happening at first in the talk) but in actual fact, any
+callee that doesn't passa function as general as (forall . a -> a) will fail to
+type check.
 
 So assume you call:
 doStuff' (+1) (1, 1.5)
@@ -102,7 +103,35 @@ The compiler will complain (and rightly so) that:
       In the expression: doStuff' (+ 1) (2, 4.5)
       In an equation for ‘it’: it = doStuff' (+ 1) (2, 4.5)
 
-So the function (also known as a section in this case) '(+1)' 
+So the function (also known as a section in this case) '(+1)' only operates
+on types that instance the Num typeclass but the function doStuff' requires
+functions that are more general than that.
 -}
 doStuff' :: Num a => (forall a . a -> a) -> (Int, Double) -> (Int, Double)
 doStuff' f (i, d) = (f i, f d)
+
+doStuff'' :: (forall a . Num a => a -> a) -> (Int, Double) -> (Int, Double)
+doStuff'' f (i, d) = (f i, f d)
+
+
+-- 28:11 in the video
+
+-- Rank 1
+f1 :: forall a b . a -> b -> a
+f1 = undefined
+
+-- Rank 1
+g1 :: forall a b . (Ord a, Eq b) => a -> b -> a
+g1 = undefined
+
+-- Rank 2
+-- f2 :: (forall a . a -> a) -> Int -> Int
+-- f2 = undefined
+
+-- Rank 2
+-- g2 :: (forall a . Eq a => [a] -> a -> Bool) -> Int -> Int
+-- g2 = undefined
+
+-- Rank 3
+-- f3 :: ((forall a . a -> a) -> Int) -> Bool -> Bool
+-- f3 = undefined
