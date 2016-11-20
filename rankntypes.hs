@@ -31,8 +31,8 @@ This seems like it should work with id at least (id can take anything right?).
     id :: a -> a
 -}
 func :: (a -> a) -> (Int, String) -> (Int, String)
-func f (x, y) = undefined
--- func f (x, y) = (f x, f y) -- fails if uncommented
+func f (i, s) = undefined
+-- func f (i, s) = (f i, f s) -- fails if uncommented
 
 {-
 10:30 in the video
@@ -51,9 +51,9 @@ What that's saying is:
 * Yes I know, currying and all that but I'm skipping these details
 
 Ok so let's apply func to id and see what a becomes.
-1/ func f (x, y) = (f x, f y)
-2/ func f = \(x,y) -> (f x, f y)
-3/ func = \f -> (\(x,y) -> (f x, f y))
+1/ func f (i, s) = (f i, f s)
+2/ func f = \(i, s) -> (f i, f s)
+3/ func = \f -> (\(i, s) -> (f i, f s))
            ^                ^    ^
            |                |    |
         (a -> a)    (a :: Int)  (a :: String)
@@ -68,9 +68,41 @@ The correct way to do this is to 'delay' the binding of the type variable
 a to a specific type. This is done as follows.
 -}
 func' :: (forall a . a -> a) -> (Int, String) -> (Int, String)
-func' f (x, y) = (f x, f y)
+func' f (i, s) = (f i, f s)
 
 {-
 To do this we need to enable the 'RankNTypes' GHC extension, as done at the top
 of this module.
 -}
+
+-- Fails again because can't bind a to both Int and Double
+doStuff :: Num a => (a -> a) -> (Int, Double) -> (Int, Double)
+doStuff = undefined
+--doStuff f (i, d) = (f i, f d)
+
+{-
+Roughly 15:13 in the video
+
+This type checks. But ...
+Your function 'f' *does not* require the type constraint 'Num a'.
+If you call this from ghci it'll look like it blows up at tuntime (as it
+does in the talk) but in actual fact, any callee that doesn't passa function
+as general as (forall . a -> a) will fail to type check.
+
+So assume you call:
+doStuff' (+1) (1, 1.5)
+
+The compiler will complain (and rightly so) that:
+    • No instance for (Num a1) arising from an operator section
+      Possible fix:
+        add (Num a1) to the context of
+          a type expected by the context:
+            a1 -> a1
+    • In the first argument of ‘doStuff'’, namely ‘(+ 1)’
+      In the expression: doStuff' (+ 1) (2, 4.5)
+      In an equation for ‘it’: it = doStuff' (+ 1) (2, 4.5)
+
+So the function (also known as a section in this case) '(+1)' 
+-}
+doStuff' :: Num a => (forall a . a -> a) -> (Int, Double) -> (Int, Double)
+doStuff' f (i, d) = (f i, f d)
