@@ -59,10 +59,10 @@ Ok so let's apply func to id and see what a becomes.
         (a -> a)    (a :: Int)  (a :: String)
 I'm not quite sure how to explain the above line but essentially once f
 is bound to a function it wants to check the type of that function will
-suit it's definition. So it looks across, see's 'f x' and binds the type
-a to Int (since x is an Int). However, as it continues to look across it
-sees the 'f y' and tries to resolve this with 'f' being something that
-takes an Int. No can do! Type error!
+suit it's definition. So it looks across, see's 'f i' and binds the type
+a to Int (since i is an Int). However, as it continues to look across it
+sees the 'f s' and tries to resolve this with 'f' being something that
+takes a String. No can do! Type error!
 
 The correct way to do this is to 'delay' the binding of the type variable
 a to a specific type. This is done as follows.
